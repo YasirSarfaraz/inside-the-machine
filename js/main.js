@@ -242,22 +242,94 @@ prevBtn.onclick = () => stepBy(-1);
 nextBtn.onclick = () => stepBy(1);
 
 // ---------- resize ----------
-let W = 0, H = 0;
+let W = 0, H = 0, shortLandscape = false;
 function resize() {
-  W = innerWidth; H = innerHeight;
+  layout(); // first, so a scrollbar (if any) exists before measuring
+  // the visible area (excludes a desktop scrollbar, which the fixed stage doesn't cover)
+  W = document.documentElement.clientWidth || innerWidth; H = document.documentElement.clientHeight || innerHeight;
   renderer.setSize(W, H, false);
   camera.aspect = W / H;
-  camera.userData.fovBoost = W / H < 1 ? 1.45 : 1; // keep scenes framed on portrait screens
+  // Portrait screens: the explanation text covers the bottom, so centre the 3D a little higher.
+  const lift = W / H < 1 ? Math.round(H * 0.07) : 0;
+  // Short landscape phones: the explanation is a column on the left, so move the 3D right and a bit down.
+  shortLandscape = H < 520 && W > H;
+  if (lift) camera.setViewOffset(W, H, 0, lift, W, H);
+  else if (shortLandscape) camera.setViewOffset(W, H, -Math.round(W * 0.14), -Math.round(H * 0.05), W, H);
+  else camera.clearViewOffset();
   for (const m of lineMats) m.resolution.set(W, H);
-  layout();
 }
 addEventListener('resize', resize);
 resize();
 
+// ---------- camera framing for any screen shape ----------
+// Every shot is composed for a 16:9 screen. On narrower screens: widen the lens a little (up to ~30%),
+// then step the camera back along its line of sight, which keeps the perspective natural.
+// On portrait screens the camera measures what's actually on stage and steps back only as far as needed
+// to fit it, cropping empty sides instead of shrinking the subject.
+const REF_ASPECT = 16 / 9;
+const DEG = Math.PI / 180;
+const fitBoxes = new Map(); // stage group → { box, age }
+const tmpBox = new THREE.Box3(), corner = new THREE.Vector3(), nominal = new THREE.Vector3();
+function stageBox(g) {
+  let e = fitBoxes.get(g);
+  if (e && e.age++ < 30) return e.box; // re-measure twice a second: stacks spread, parts move
+  if (!e) fitBoxes.set(g, (e = { box: new THREE.Box3() }));
+  e.age = 0;
+  e.box.makeEmpty();
+  g.updateMatrixWorld(true);
+  g.traverseVisible((o) => {
+    if (!o.geometry || o.type === 'GridHelper' || o.isSprite) return;
+    if (o.isInstancedMesh) { o.computeBoundingBox(); tmpBox.copy(o.boundingBox); }
+    else { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); tmpBox.copy(o.geometry.boundingBox); }
+    tmpBox.applyMatrix4(o.matrixWorld);
+    if (tmpBox.isEmpty() || tmpBox.getSize(corner).length() > 30) return; // skip backdrops and expanding wavefronts
+    e.box.union(tmpBox);
+  });
+  return e.box;
+}
+function frameCamera() {
+  let fov = cam.fov, k = 1;
+  const a = camera.aspect;
+  const dist = Math.hypot(cam.px - cam.tx, cam.py - cam.ty, cam.pz - cam.tz);
+  if (a < REF_ASPECT) {
+    const tan0 = Math.tan((fov * DEG) / 2);
+    const tanFull = tan0 * Math.pow(REF_ASPECT / a, 0.92); // keeps the whole 16:9 width
+    const tanCrop = a < 1 ? tan0 * Math.pow(REF_ASPECT / a, 0.72) : tanFull; // portrait: allow cropping the sides
+    const tanUse = Math.min(tanCrop, Math.tan((Math.min(fov * 1.3, 56) * DEG) / 2));
+    fov = (2 * Math.atan(tanUse)) / DEG;
+    const kFull = tanFull / tanUse, kCrop = tanCrop / tanUse;
+    k = kFull;
+    if (a < 1) {
+      // how far back must the camera go for everything on stage to fit across the screen?
+      camera.position.set(cam.px, cam.py, cam.pz);
+      camera.lookAt(cam.tx, cam.ty, cam.tz);
+      camera.updateMatrixWorld();
+      const m = tanUse * a * 0.94;
+      let need = -Infinity;
+      for (const name in groups) {
+        if (name === 'laptop' || !groups[name].visible) continue;
+        const b = stageBox(groups[name]);
+        if (b.isEmpty()) continue;
+        for (let c = 0; c < 8; c++) {
+          corner.set(c & 1 ? b.max.x : b.min.x, c & 2 ? b.max.y : b.min.y, c & 4 ? b.max.z : b.min.z).applyMatrix4(camera.matrixWorldInverse);
+          need = Math.max(need, Math.abs(corner.x) / m + corner.z); // extra distance so this corner fits
+        }
+      }
+      k = need === -Infinity ? kCrop : Math.min(kFull, Math.max(kCrop, 1 + need / dist));
+    }
+  }
+  if (shortLandscape) k *= 1.12;
+  nominal.set(cam.px - cam.tx, cam.py - cam.ty, cam.pz - cam.tz).multiplyScalar(k);
+  camera.position.set(cam.tx + nominal.x, cam.ty + nominal.y, cam.tz + nominal.z);
+  camera.lookAt(cam.tx, cam.ty, cam.tz);
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+}
+
 // ---------- render loop ----------
 const clock = new THREE.Clock();
 const readoutEl = $('#readout');
-let lastReadout = '';
+let lastReadout = '', readoutH = 0;
 let chapIdx = -1;
 let slow = 0;
 function frame() {
@@ -278,10 +350,7 @@ function frame() {
   for (const ch of chapters) ch.update?.(now, dt, T);
   for (const k in groups) groups[k].visible = vis[k] > 0.5;
 
-  camera.position.set(cam.px, cam.py, cam.pz);
-  camera.lookAt(cam.tx, cam.ty, cam.tz);
-  camera.fov = cam.fov * camera.userData.fovBoost;
-  camera.updateProjectionMatrix();
+  frameCamera();
   backdrop.position.copy(camera.position);
 
   renderFrame();
@@ -294,7 +363,9 @@ function frame() {
   if (!booted && warmed && frames++ > 4 && (hdriReady || now > 4)) { booted = true; body.classList.add('ready'); }
 
   readoutEl.style.opacity = readoutOp;
-  if (readoutOp > 0 && readoutHTML !== lastReadout) { lastReadout = readoutHTML; readoutEl.innerHTML = readoutHTML; }
+  if (readoutOp > 0 && readoutHTML !== lastReadout) { lastReadout = readoutHTML; readoutEl.innerHTML = readoutHTML; readoutH = readoutEl.offsetHeight; }
+  // on phones the readout sits top-right, so right-hand labels start below it
+  labels.topRight = readoutOp > 0.05 && W < 900 ? 96 + readoutH + 16 : 0; // 96 = the readout's top on phones (style.css)
 
   if (!IDLE) {
     body.classList.toggle('scrolled', scrollY > 40);
@@ -305,6 +376,9 @@ function frame() {
     if (i !== chapIdx) {
       chapIdx = i;
       navChapters.forEach((c) => c.tab.classList.toggle('on', c === ch));
+      // on small screens the tab row scrolls sideways: keep the current topic in view
+      const tab = ch.tab || navChapters[navChapters.length - 1].tab;
+      if (tabs.scrollWidth > tabs.clientWidth) tabs.scrollTo({ left: tab.offsetLeft - (tabs.clientWidth - tab.offsetWidth) / 2, behavior: 'smooth' });
     }
     updateOutline(ch, T);
   }

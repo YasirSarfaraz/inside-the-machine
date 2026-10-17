@@ -3,3 +3,4 @@ __pycache__/
 _patch*.py
 .DS_Store
 Thumbs.db
+_*.html

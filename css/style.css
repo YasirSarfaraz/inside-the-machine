@@ -99,21 +99,48 @@ body.ready #boot { opacity: 0; visibility: hidden; }
 body.idle #top, body.idle #panel, body.idle #hint, body.idle #labels, body.idle #lines, body.idle #titles, body.idle #readout, body.idle #boot, body.idle #stage::after { display: none; }
 
 @media (max-width: 900px) {
-  #top { padding: 16px 16px 0; }
-  #top .row { gap: 18px; }
+  #top { padding: 14px 16px 0; }
+  #top .row { gap: 16px; }
   .brand { display: none; }
-  #tabs { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; gap: 18px; }
-  #tabs button { white-space: nowrap; }
-  #outline { width: 100%; }
-  #panel { left: 16px; right: 16px; width: auto; bottom: 20px; }
-  #panel h2 { font-size: 19px; }
-  #panel p { font-size: 14px; }
-  #readout { right: 16px; bottom: auto; top: 96px; width: 200px; font-size: 11px; }
-  #readout .text { font-size: 24px; }
+  /* topics scroll sideways; the current one is scrolled into view (main.js) */
+  #tabs { position: relative; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; gap: 18px; padding: 4px 0;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 20px), transparent); mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 20px), transparent); }
+  #tabs::-webkit-scrollbar { display: none; }
+  #tabs button { white-space: nowrap; padding: 4px 0; }
+  .mode { gap: 12px; flex-shrink: 0; }
+  #outline { width: 100%; margin-top: 12px; }
+  #panel { left: 16px; right: 16px; width: auto; bottom: max(16px, env(safe-area-inset-bottom)); }
+  #panel h2 { font-size: 18px; margin: 6px 0 8px; }
+  #panel p { font-size: 14px; line-height: 1.55; }
+  #panel p.d { max-height: 22vh; overflow-y: auto; }
+  #panel .pnav { margin-top: 10px; gap: 28px; font-size: 18px; }
+  #panel .pnav button { padding: 6px 8px 6px 0; }
+  #readout { right: 16px; bottom: auto; top: 96px; width: auto; max-width: 56vw; font-size: 10.5px; }
+  #readout .text { font-size: 22px; }
+  #readout td { padding: 2px 4px 2px 0; }
+  .label b { font-size: 12px; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95); }
   .label small { display: none; }
+  #hint { bottom: 24px; }
+}
+/* short landscape phones: the explanation becomes a narrow column on the left */
+@media (max-height: 520px) and (orientation: landscape) {
+  #top { padding-top: 10px; }
+  #outline { margin-top: 8px; }
+  #panel { right: auto; width: min(360px, 44vw); bottom: 12px; }
+  #panel h2 { font-size: 16px; }
+  #panel p { font-size: 13px; }
+  #panel p.d { max-height: 30vh; }
+  #readout { top: 70px; }
+  .title-card { top: 18%; }
+  .title-card .t { font-size: 38px; }
 }
 
 /* the opening title: Apple-style display type, tight and heavy, with a soft brushed-silver fill */
 .title-card.hero .t { font-family: "SF Pro Display", -apple-system, "Inter Tight", var(--sans); font-weight: 600; letter-spacing: -0.045em;
   font-size: clamp(48px, 7.4vw, 108px); padding-bottom: 0.08em;
   background: linear-gradient(180deg, #ffffff 30%, #9a9a9f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@media (max-width: 600px) {
+  .title-card .t { font-size: 38px; }
+  .title-card.hero .t { font-size: 46px; line-height: 1.02; }
+  .title-card .x { padding: 0 8px; }
+}
