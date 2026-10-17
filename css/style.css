@@ -1,0 +1,119 @@
+/* =====================================================================
+   INSIDE THE MACHINE
+   Minimal: one typeface, white on black, no boxes, no glow.
+   Nothing here uses blur or shadows, so the page never slows the 3D.
+   ===================================================================== */
+:root {
+  --bg: #000;
+  --ink: #f2f2f2;
+  --soft: #b4b4b4;
+  --muted: #777;
+  --line: rgba(255, 255, 255, 0.16);
+  --sans: "Inter", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-weight: 400; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+#stage { position: fixed; inset: 0; overflow: hidden; }
+#scroll { width: 1px; pointer-events: none; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#labels, #titles { position: absolute; inset: 0; pointer-events: none; }
+#fade, #flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+#fade { background: var(--bg); }
+#flash { background: #fff; }
+/* one static scrim at the bottom keeps the text readable over the 3D */
+#stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 38vh; pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent); }
+
+/* ---------- callouts ---------- */
+.label { position: absolute; left: 0; top: 0; white-space: nowrap; padding: 0 8px; will-change: transform; }
+.label b { display: block; font-weight: 500; font-size: 13px; color: var(--ink); }
+.label small { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+#lines line { stroke: rgba(255, 255, 255, 0.3); stroke-width: 1; }
+#lines circle { fill: var(--ink); r: 2; }
+
+/* ---------- section titles ---------- */
+.title-card { position: absolute; left: 0; right: 0; margin: 0 auto; top: 24%; transform: translateY(12px); text-align: center; opacity: 0; width: min(92vw, 1000px); }
+.title-card .k { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.title-card .t { font-weight: 300; font-size: clamp(40px, 6vw, 84px); letter-spacing: -0.02em; line-height: 1.05; margin-top: 14px; }
+.title-card .x { margin-top: 18px; font-size: clamp(15px, 1.3vw, 17px); color: var(--soft); line-height: 1.6; }
+.title-card .x span { color: var(--ink); }
+
+/* ---------- top ---------- */
+#top { position: absolute; top: 0; left: 0; right: 0; z-index: 2; padding: 24px 40px 0; }
+#top .row { display: flex; align-items: center; gap: 32px; }
+.brand { font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none; white-space: nowrap; }
+#tabs { flex: 1; display: flex; gap: 28px; justify-content: center; }
+#tabs button { font-size: 14px; color: var(--muted); transition: color 0.3s; }
+#tabs button:hover, #tabs button.on { color: var(--ink); }
+.mode { display: flex; gap: 16px; }
+.mode button { font-size: 14px; color: var(--muted); transition: color 0.3s; }
+.mode button.on, .mode button:hover { color: var(--ink); }
+
+/* sections of the current topic: a thin segmented line */
+#outline { display: flex; gap: 4px; width: min(560px, 60vw); margin: 22px auto 0; }
+#outline button { position: relative; flex: 1; height: 14px; }
+#outline button::before, #outline button i { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 1px; background: var(--line); }
+#outline button i { background: var(--ink); transform: scaleX(0); transform-origin: left; }
+
+/* ---------- explanation ---------- */
+#panel { position: absolute; z-index: 2; left: 40px; bottom: 40px; width: min(420px, calc(100vw - 32px)); transition: opacity 0.5s var(--ease); }
+#panel.empty { opacity: 0; }
+#panel .kicker { font-size: 12px; color: var(--muted); }
+#panel h2 { margin: 8px 0 10px; font-weight: 500; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; }
+#panel p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--soft); }
+#panel p.d { display: none; margin-top: 12px; font-size: 14px; color: var(--muted); }
+body[data-mode="deep"] #panel p.d { display: block; }
+#panel.fresh > * { animation: fade-in 0.5s var(--ease) both; }
+#panel .pnav { display: flex; gap: 18px; margin-top: 16px; font-size: 16px; }
+#panel .pnav button { color: var(--muted); transition: color 0.3s; }
+#panel .pnav button:hover:not(:disabled) { color: var(--ink); }
+#panel .pnav button:disabled { opacity: 0.3; cursor: default; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- live readout ---------- */
+#readout { position: absolute; z-index: 2; right: 40px; bottom: 40px; width: 300px; opacity: 0; pointer-events: none; font-family: var(--mono); font-size: 12px; color: var(--soft); }
+#readout h4 { margin: 0 0 8px; font-family: var(--sans); font-weight: 400; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+#readout .bits { line-height: 1.8; min-height: 22px; }
+#readout i { font-style: normal; color: var(--ink); }
+#readout .text { margin-top: 6px; font-family: var(--sans); font-weight: 300; font-size: 36px; letter-spacing: 0.08em; min-height: 40px; color: var(--ink); }
+#readout table { border-collapse: collapse; width: 100%; }
+#readout td { padding: 3px 0; }
+#readout tr.on td { color: var(--ink); }
+
+/* ---------- scroll hint ---------- */
+#hint { position: absolute; z-index: 2; left: 50%; bottom: 36px; transform: translateX(-50%); font-size: 12px; color: var(--muted); transition: opacity 0.5s; pointer-events: none; }
+body.scrolled #hint { opacity: 0; }
+
+/* ---------- loader ---------- */
+#boot { position: absolute; inset: 0; z-index: 10; background: var(--bg); transition: opacity 0.8s var(--ease), visibility 0s 0.8s; }
+body.ready #boot { opacity: 0; visibility: hidden; }
+
+/* idle (portfolio card) mode: only the 3D */
+body.idle #top, body.idle #panel, body.idle #hint, body.idle #labels, body.idle #lines, body.idle #titles, body.idle #readout, body.idle #boot, body.idle #stage::after { display: none; }
+
+@media (max-width: 900px) {
+  #top { padding: 16px 16px 0; }
+  #top .row { gap: 18px; }
+  .brand { display: none; }
+  #tabs { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; gap: 18px; }
+  #tabs button { white-space: nowrap; }
+  #outline { width: 100%; }
+  #panel { left: 16px; right: 16px; width: auto; bottom: 20px; }
+  #panel h2 { font-size: 19px; }
+  #panel p { font-size: 14px; }
+  #readout { right: 16px; bottom: auto; top: 96px; width: 200px; font-size: 11px; }
+  #readout .text { font-size: 24px; }
+  .label small { display: none; }
+}
+
+/* the opening title: Apple-style display type, tight and heavy, with a soft brushed-silver fill */
+.title-card.hero .t { font-family: "SF Pro Display", -apple-system, "Inter Tight", var(--sans); font-weight: 600; letter-spacing: -0.045em;
+  font-size: clamp(48px, 7.4vw, 108px); padding-bottom: 0.08em;
+  background: linear-gradient(180deg, #ffffff 30%, #9a9a9f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }

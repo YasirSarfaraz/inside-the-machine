@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inside the Machine</title>
+  <meta name="description" content="A scrollable 3D explainer: a laptop takes itself apart, and each part shows what physically happens inside." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Inter+Tight:wght@600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body data-mode="simple">
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <svg id="lines"></svg>
+    <div id="labels"></div>
+    <div id="readout"></div>
+    <div id="titles"></div>
+    <div id="fade"></div>
+    <div id="flash"></div>
+
+    <header id="top">
+      <div class="row">
+        <a class="brand" href="#">Inside the Machine</a>
+        <nav id="tabs" aria-label="Technologies"></nav>
+        <div class="mode" role="group" aria-label="Explanation depth">
+          <button data-mode="simple" class="on">Simple</button>
+          <button data-mode="deep">Deeper</button>
+        </div>
+      </div>
+      <nav id="outline" aria-label="Sections in this technology"></nav>
+    </header>
+
+    <article id="panel" class="empty">
+      <div class="kicker"></div>
+      <h2></h2>
+      <p class="s"></p>
+      <p class="d"></p>
+      <div class="pnav">
+        <button class="prev" aria-label="Previous step">←</button>
+        <button class="next" aria-label="Next step">→</button>
+      </div>
+    </article>
+
+    <div id="hint">Scroll</div>
+    <div id="boot" aria-hidden="true"></div>
+  </div>
+  <div id="scroll"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
