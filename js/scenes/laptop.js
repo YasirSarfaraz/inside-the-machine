@@ -480,7 +480,7 @@ export function introChapter(ctx) {
       'The screen is a stack too: protective glass, a liquid-crystal layer that forms the image, and a backlight behind it.',
       'Cover glass → LCD (liquid crystals + colour filters) → backlight and diffusers. OLED screens skip the backlight: each pixel makes its own light.'],
     [26.6, 10.2, 'Choose a part',
-      'Keep scrolling to fly into the Wi-Fi chip, the CPU and the battery. Or pick one from the tabs at the top.',
+      'Keep scrolling to fly into the Wi-Fi chip, the CPU, the battery, the screen, the memory and the cooling. Or pick one from the tabs at the top.',
       'Each part goes from the big picture down to what is physically happening: fields, electrons, atoms and ions.'],
   ];
   const outline = [['Open', 0], ['Explode', 8.6], ['Parts', 14], ['Display', 20.8], ['Spin', 26.6]];
@@ -497,17 +497,17 @@ export function outroChapter(ctx) {
   tl.to(s, { explode: 0, duration: 4, ease: 'power2.inOut' }, 1.2);
   ctx.camTo(tl, { p: [2.6, 2.0, 5.0], t: [0, 0.3, 0] }, 1.0, 4.5, 'power2.inOut');
   tl.to(s, { open: 0, duration: 2.6, ease: 'power2.inOut' }, 5.4);
-  ctx.camTo(tl, { p: [3.8, 2.6, 5.4], t: [0, 0.0, 0] }, 5.4, 5, 'sine.inOut');
-  ctx.title(tl, 7.4, 'COMING NEXT', 'Episode 2', 0,
-    '<span>Screen</span> · <span>RAM vs SSD</span> · <span>Cooling</span><br>and finally: <span>the quantum computer</span>');
+  ctx.camTo(tl, { p: [3.8, 2.9, 5.4], t: [0, 0.75, 0] }, 5.4, 5, 'sine.inOut');
+  ctx.title(tl, 7.4, 'COMING NEXT', 'The Quantum Computer', 0,
+    'Qubits, <span>superposition</span> and <span>entanglement</span>: a very different kind of machine');
   ctx.pad(tl, 14);
   const steps = [
     [0.8, 5.4, 'One thin machine',
-      'Radio waves into bits. Switches into logic. Ions into power. All folded into one thin machine.',
-      'Radio → QAM symbols → bits. Transistors + clock → computation. Lithium ions → stored chemical energy. All in about 1.5 kg.'],
+      'Radio waves into bits. Switches into logic. Ions into power. Crystals into light. Charge into memory. Heat carried away. All folded into one thin machine.',
+      'Radio → QAM symbols → bits. Transistors + clock → computation. Lithium ions → stored energy. Liquid crystals → images. Capacitors and trapped electrons → memory. Heat pipes and fans → a cool chip. All in about 1.5 kg.'],
     [6.6, 7.4, 'Coming next',
-      'Next: the screen, RAM versus SSD, and cooling. And at the end, the strangest machine of all: a quantum computer.',
-      'Pixels and liquid crystals, why RAM is ~1000× faster than an SSD, how heat moves. Then qubits: superposition and entanglement on the Bloch sphere.'],
+      'Next, the strangest machine of all: a quantum computer, which doesn’t use bits that are just 0 or 1.',
+      'Qubits, superposition and entanglement on the Bloch sphere, and why some problems become dramatically faster.'],
   ];
   return { title: 'Up Next', tl, steps, outline: [['Reassemble', 0], ['Next', 6.6]] };
 }

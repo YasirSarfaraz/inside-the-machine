@@ -1,4 +1,4 @@
-# Inside the Machine — Episode 1
+# Inside the Machine
 
 A scroll-driven 3D explainer. Scroll down to move forward, up to go back. A laptop takes itself apart, then each part is explained from the big picture down to what physically happens inside.
 
@@ -10,6 +10,9 @@ Tabs at the top switch technology; the row under them jumps to any depth level. 
 | Wi-Fi | card → radio waves → E/B field → electrons in the antenna → inside the chip → mixer → ADC → OFDM → noisy QAM → packet + CRC → web page |
 | CPU | package → die + clock → pipeline → binary adder → NAND gate from 4 transistors → transistor field → MOSFET → FinFET → silicon atoms, doping, field effect |
 | Battery | pack → layer stack → ion/electron flow → graphite atoms → solvated ions through the separator → LiCoO₂ crystal → charging |
+| Screen | picture → RGB subpixels → LCD layer stack → polarizers (Malus’s law) → twisted liquid crystal untwisting under voltage → colour mixing → thin-film transistor grid → row-by-row refresh |
+| RAM vs SSD | cache / RAM / SSD latency → DRAM array (activate row, sense amps, read columns) → one DRAM cell leaking and refreshed → 3D NAND stack (cutaway) → charge-trap flash cell being written → side-by-side comparison |
+| Cooling | heat map of a loaded CPU → heat as vibrating copper atoms → heat pipe (boil, vapour, condense, wick) → fins and fan → thermal throttling |
 
 ## Run locally
 
@@ -37,7 +40,7 @@ js/scenes/laptop.js laptop model, explode rig, intro/outro chapters, idle loop
 js/scenes/wifi.js   js/scenes/cpu.js   js/scenes/battery.js
 ```
 
-Each chapter returns `{ title, tl, steps, outline, update }`. `tl` is a GSAP timeline added to one master timeline that scroll position scrubs (110 px per timeline second). Scroll-driven values (what's shown, camera, progress of a process) live in state objects on that timeline; continuous motion (waves, electrons, clock ticks) runs on real time in `update(now, dt)`, so scenes stay alive when you stop scrolling. To add a chapter (screen, RAM/SSD, cooling, quantum), write a new `scenes/*.js` and add it to the `chapters` array in `main.js`.
+Each chapter returns `{ title, tl, steps, outline, update }`. `tl` is a GSAP timeline added to one master timeline that scroll position scrubs (110 px per timeline second). Scroll-driven values (what's shown, camera, progress of a process) live in state objects on that timeline; continuous motion (waves, electrons, clock ticks) runs on real time in `update(now, dt)`, so scenes stay alive when you stop scrolling. To add a chapter (next: quantum), write a new `scenes/*.js` and add it to the `chapters` array in `main.js`.
 
 ## Deploy (later)
 

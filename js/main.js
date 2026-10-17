@@ -7,6 +7,9 @@ import { createLaptop, introChapter, outroChapter, idleLoop, IDLE_VIEW } from '.
 import { wifiChapter } from './scenes/wifi.js';
 import { cpuChapter } from './scenes/cpu.js';
 import { batteryChapter } from './scenes/battery.js';
+import { screenChapter } from './scenes/screen.js';
+import { memoryChapter } from './scenes/memory.js';
+import { coolingChapter } from './scenes/cooling.js';
 
 const gsap = window.gsap;
 let hdriReady = false, booted = false, frames = 0;
@@ -128,7 +131,7 @@ const ctx = {
 ctx.laptop = createLaptop(ctx);
 
 // ---------- build the timeline (driven by scroll, not by playback) ----------
-const chapters = [introChapter(ctx), wifiChapter(ctx), cpuChapter(ctx), batteryChapter(ctx), outroChapter(ctx)];
+const chapters = [introChapter(ctx), wifiChapter(ctx), cpuChapter(ctx), batteryChapter(ctx), screenChapter(ctx), memoryChapter(ctx), coolingChapter(ctx), outroChapter(ctx)];
 const master = gsap.timeline({ paused: true });
 let total = 0;
 for (const ch of chapters) {
